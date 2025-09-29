@@ -94,25 +94,29 @@ function processInput(){
   clusters.forEach(cluster=>{
     let clusterText=cluster.replace(/\s+$/gm,'');
     if(doubleDanda){
-      clusterText = clusterText.replace(/॥\s*([\d०-९]*)\s*॥/g, (_, num)=> num ? `॥ ${num} ॥` : '॥  ॥');
-      clusterText = clusterText.replace(/\|\|\s*(\d*)\s*\|\|/g, (_, num)=> num ? `|| ${num} ||` : '||  ||');
+        clusterText = clusterText.replace(/॥\s*([\d०-९]*)\s*॥/g, (_, num)=> num ? `॥ ${num} ॥` : '॥  ॥');
+        clusterText = clusterText.replace(/\|\|\s*(\d*)\s*\|\|/g, (_, num)=> num ? `|| ${num} ||` : '||  ||');
     }
 
     if(document.getElementById("optDevanagari").checked){
-      if(script==='iast') output+=transliterateIASTtoDevanagari(clusterText)+'\n';
-      else output+=clusterText+'\n';
+        if(script==='iast') output += transliterateIASTtoDevanagari(clusterText)+'\n';
+        else output += clusterText+'\n';
     }
-    if(document.getElementById("optBengali").checked){
-      if(script==='iast') output+=transliterateIASTtoBengali(clusterText)+'\n';
-      else if(script==='dev') output+=devanagariToBengali(clusterText)+'\n';
-    }
-    if(document.getElementById("optIAST").checked){
-      if(script==='dev') output+=devanagariToIAST(clusterText)+'\n';
-      else output+=clusterText+'\n';
-    }
-    output+='\n';
-  });
 
+    if(document.getElementById("optBengali").checked){
+        if(script==='iast') output += transliterateIASTtoBengali(clusterText)+'\n';
+        else if(script==='dev') output += devanagariToBengali(clusterText)+'\n';
+        else output += clusterText+'\n';
+    }
+
+    if(document.getElementById("optIAST").checked){
+        if(script==='dev') output += devanagariToIAST(clusterText)+'\n';
+        else output += clusterText+'\n';
+    }
+
+    output+='\n';
+});
+  
   document.getElementById("outputBox").value=output.trim();
 }
 
