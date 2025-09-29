@@ -1,242 +1,162 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Stotram/Path Transliterator + Formatter</title>
-  <style>
-    body {
-      font-family: 'Noto Serif', serif;
-      background: #f9f9f9;
-      color: #333;
-      padding: 2em;
-      max-width: 900px;
-      margin: auto;
-    }
-
-    h1 {
-      text-align: center;
-      margin-bottom: 1em;
-    }
-
-    .textbox-container {
-      position: relative;
-      margin-bottom: 1em;
-    }
-
-    textarea {
-      width: 100%;
-      height: 140px;
-      font-size: 1.1em;
-      padding: 10px;
-      font-family: 'Noto Serif Devanagari', 'Noto Serif Bengali', serif;
-      box-sizing: border-box;
-      white-space: pre-wrap;
-    }
-
-    .copy-btn {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      padding: 5px 10px;
-      background: #4caf50;
-      color: white;
-      border: none;
-      cursor: pointer;
-      font-size: 0.9em;
-    }
-
-    .options-bar {
-      display: flex;
-      justify-content: center;
-      gap: 1.5em;
-      margin-bottom: 1em;
-      background: #eee;
-      padding: 10px;
-      border-radius: 6px;
-    }
-
-    .options-bar label {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      cursor: pointer;
-      font-size: 0.95em;
-    }
-
-    .shloka {
-      margin-top: 1.5em;
-      margin-bottom: 1.5em;
-      padding: 10px;
-      background: white;
-      border-radius: 6px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    }
-
-    .devanagari {
-      font-size: 1.3em;
-      font-weight: bold;
-      color: #222;
-      font-family: 'Noto Serif Devanagari', serif;
-      margin-bottom: 4px;
-    }
-
-    .bengali {
-      font-size: 1.3em;
-      font-weight: bold;
-      color: #222;
-      font-family: 'Noto Serif Bengali', serif;
-      margin-bottom: 4px;
-    }
-
-    .iast {
-      font-size: 1.1em;
-      font-style: italic;
-      color: #555;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Transliterator + Formatter</title>
+<style>
+body { font-family: 'Noto Serif', serif; background: #f9f9f9; color:#333; padding:2em; max-width:900px; margin:auto; }
+h1{text-align:center;margin-bottom:1em;}
+.textbox-container{position:relative;margin-bottom:1em;}
+textarea{width:100%;height:140px;font-size:1.1em;padding:10px;box-sizing:border-box;white-space:pre-wrap;font-family:'Noto Serif Devanagari','Noto Serif Bengali',serif;}
+.copy-btn{position:absolute;top:10px;right:10px;padding:5px 10px;background:#4caf50;color:white;border:none;cursor:pointer;font-size:0.9em;}
+.options-bar{display:flex;justify-content:center;gap:1.5em;margin-bottom:1em;background:#eee;padding:10px;border-radius:6px;}
+.options-bar label{display:flex;align-items:center;gap:5px;cursor:pointer;font-size:0.95em;}
+.shloka{margin-top:1.5em;margin-bottom:1.5em;padding:10px;background:white;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,0.1);}
+.devanagari{font-size:1.3em;font-weight:bold;color:#222;margin-bottom:4px;font-family:'Noto Serif Devanagari',serif;}
+.bengali{font-size:1.3em;font-weight:bold;color:#222;margin-bottom:4px;font-family:'Noto Serif Bengali',serif;}
+.iast{font-size:1.1em;font-style:italic;color:#555;}
+</style>
 </head>
 <body>
 
 <h1>Stotram/Path Transliterator + Formatter</h1>
 
 <div class="textbox-container">
-  <textarea id="inputBox" placeholder="Paste or type Devanagari shloka here..."></textarea>
-  <button class="copy-btn" onclick="copyText('inputBox')">Copy</button>
+<textarea id="inputBox" placeholder="Paste or type Devanagari shloka here..."></textarea>
+<button class="copy-btn" onclick="copyText('inputBox')">Copy</button>
 </div>
 
 <div class="options-bar">
-  <label><input type="checkbox" id="optDevanagari" checked> Devanagari</label>
-  <label><input type="checkbox" id="optBengali"> Bengali</label>
-  <label><input type="checkbox" id="optIAST" checked> IAST</label>
+<label><input type="checkbox" id="optDevanagari" checked> Devanagari</label>
+<label><input type="checkbox" id="optBengali"> Bengali</label>
+<label><input type="checkbox" id="optIAST" checked> IAST</label>
 </div>
 
 <div class="textbox-container">
-  <textarea id="outputBox" placeholder="Output will appear here..." readonly></textarea>
-  <button class="copy-btn" onclick="copyText('outputBox')">Copy</button>
+<textarea id="outputBox" placeholder="Output will appear here..." readonly></textarea>
+<button class="copy-btn" onclick="copyText('outputBox')">Copy</button>
 </div>
 
 <div id="formattedOutput"></div>
 
 <script>
-  const devanagariToIASTMap = {
-    'क':'k','ख':'kh','ग':'g','घ':'gh','ङ':'ṅ',
-    'च':'c','छ':'ch','ज':'j','झ':'jh','ञ':'ñ',
-    'ट':'ṭ','ठ':'ṭh','ड':'ḍ','ढ':'ḍh','ण':'ṇ',
-    'त':'t','थ':'th','द':'d','ध':'dh','न':'n',
-    'प':'p','फ':'ph','ब':'b','भ':'bh','म':'m',
-    'य':'y','र':'r','ल':'l','व':'v',
-    'श':'ś','ष':'ṣ','स':'s','ह':'h',
-    'अ':'a','आ':'ā','इ':'i','ई':'ī','उ':'u','ऊ':'ū',
-    'ऋ':'ṛ','ॠ':'ṝ','ए':'e','ऐ':'ai','ओ':'o','औ':'au',
-    'ा':'ā','ि':'i','ी':'ī','ु':'u','ू':'ū','ृ':'ṛ','ॄ':'ṝ',
-    'े':'e','ै':'ai','ो':'o','ौ':'au',
-    'ं':'ṃ','ः':'ḥ','ँ':'̃',
-    '्':'','ऽ':"'",'।':'|','॥':'||',
-    '०':'0','१':'1','२':'2','३':'3','४':'4','५':'5','६':'6','७':'7','८':'8','९':'9'
-  };
+// --- maps ---
+const devanagariToIASTMap = {
+'क':'k','ख':'kh','ग':'g','घ':'gh','ङ':'ṅ',
+'च':'c','छ':'ch','ज':'j','झ':'jh','ञ':'ñ',
+'ट':'ṭ','ठ':'ṭh','ड':'ḍ','ढ':'ḍh','ण':'ṇ',
+'त':'t','थ':'th','द':'d','ध':'dh','न':'n',
+'प':'p','फ':'ph','ब':'b','भ':'bh','म':'m',
+'य':'y','र':'r','ल':'l','व':'v',
+'श':'ś','ष':'ṣ','स':'s','ह':'h',
+'अ':'a','आ':'ā','इ':'i','ई':'ī','उ':'u','ऊ':'ū',
+'ऋ':'ṛ','ॠ':'ṝ','ए':'e','ऐ':'ai','ओ':'o','औ':'au',
+'ा':'ā','ि':'i','ी':'ī','ु':'u','ू':'ū','ृ':'ṛ','ॄ':'ṝ',
+'े':'e','ै':'ai','ो':'o','ौ':'au',
+'ं':'ṃ','ः':'ḥ','ँ':'̃',
+'्':'','ऽ':"'",'।':'|','॥':'||',
+'०':'0','१':'1','२':'2','३':'3','४':'4','५':'5','६':'6','७':'7','८':'8','९':'9'
+};
 
-  const devanagariToBengaliMap = {
-    'क':'ক','ख':'খ','ग':'গ','घ':'ঘ','ङ':'ঙ',
-    'च':'চ','छ':'ছ','ज':'জ','झ':'ঝ','ञ':'ঞ',
-    'ट':'ট','ठ':'ঠ','ड':'ড','ढ':'ঢ','ण':'ণ',
-    'त':'ত','थ':'থ','द':'দ','ध':'ধ','न':'ন',
-    'प':'প','फ':'ফ','ब':'ব','ভ':'ভ','म':'ম',
-    'य':'য','र':'র','ल':'ল','व':'ব',
-    'श':'শ','ष':'ষ','स':'স','ह':'হ',
-    'अ':'অ','आ':'আ','इ':'ই','ई':'ঈ','उ':'উ','ऊ':'ঊ',
-    'ऋ':'ঋ','ॠ':'ৠ','ए':'এ','ऐ':'ঐ','ओ':'ও','औ':'ঔ',
-    'ा':'া','ि':'ি','ी':'ী','ु':'ু','ू':'ূ','ृ':'ৃ','ॄ':'ৄ',
-    'े':'ে','ै':'ৈ','ो':'ো','ौ':'ৌ',
-    'ं':'ং','ः':'ঃ','ँ':'ঁ',
-    '्':'','ऽ':"'",'।':'।','॥':'॥',
-    '०':'০','१':'১','২':'২','३':'৩','४':'৪','৫':'৫','৬':'৬','৭':'৭','৮':'৮','৯':'৯'
-  };
+const devanagariToBengaliMap = {
+'क':'ক','ख':'খ','ग':'গ','घ':'ঘ','ङ':'ঙ',
+'च':'চ','छ':'ছ','জ':'জ','ঝ':'ঝ','ञ':'ঞ',
+'ट':'ট','ठ':'ঠ','ड':'ড','ढ':'ঢ','ण':'ণ',
+'त':'ত','थ':'থ','द':'দ','ध':'ধ','ন':'ন',
+'प':'প','फ':'ফ','ब':'ব','ভ':'ভ','म':'ম',
+'य':'য','र':'র','ল':'ল','व':'ব',
+'श':'শ','ष':'ষ','स':'স','ह':'হ',
+'अ':'অ','आ':'আ','इ':'ই','ई':'ঈ','उ':'উ','ऊ':'ঊ',
+'ऋ':'ঋ','ॠ':'ৠ','ए':'এ','ऐ':'ঐ','ओ':'ও','औ':'ঔ',
+'ा':'া','ि':'ি','ी':'ী','ु':'ু','ू':'ূ','ृ':'ৃ','ॄ':'ৄ',
+'े':'ে','ै':'ৈ','ो':'ো','ौ':'ৌ',
+'ं':'ং','ः':'ঃ','ँ':'ঁ',
+'्':'','ऽ':"'",'।':'।','॥':'॥',
+'०':'০','१':'১','২':'২','३':'৩','৪':'৪','৫':'৫','৬':'৬','৭':'৭','৮':'৮','৯':'৯'
+};
 
-  function devanagariToIAST(text) {
-    let chars = Array.from(text);
-    let out = '';
-    for(let i=0;i<chars.length;i++){
-      const c = chars[i];
-      const next = chars[i+1];
-      let m = devanagariToIASTMap[c]||c;
-      // Simple virama logic
-      if(/[क-ह]/.test(c)){
-        if(next==='्') out+=m;
-        else if(/[ािीुूृॄेैोौ]/.test(next)) out+=m;
-        else out+=m+'a';
-      } else if(/[ािीुूृॄेैोौ]/.test(c)) out+=m;
-      else if(c==='्') continue;
-      else out+=m;
+// --- transliteration functions ---
+function devanagariToIAST(text){
+  let out='';
+  const chars = Array.from(text);
+  for(let i=0;i<chars.length;i++){
+    const c=chars[i];
+    const next=chars[i+1];
+    let m = devanagariToIASTMap[c]||c;
+    if(/[क-ह]/.test(c)){
+      if(next==='्') out+=m;
+      else if(/[ािीुूृॄेैोौ]/.test(next)) out+=m;
+      else out+=m+'a';
+    }else if(/[ािीुूृॄेैोौ]/.test(c)) out+=m;
+    else if(c==='्') continue;
+    else out+=m;
+  }
+  return out;
+}
+
+function devanagariToBengali(text){
+  // Remove all virāmas
+  const noVirama = text.replace(/्/g,'');
+  return Array.from(noVirama).map(c=>devanagariToBengaliMap[c]||c).join('');
+}
+
+// copy function
+function copyText(id){
+  const box=document.getElementById(id);
+  box.select();
+  box.setSelectionRange(0,99999);
+  document.execCommand('copy');
+}
+
+// event listeners
+document.getElementById("inputBox").addEventListener("input",processInput);
+document.querySelectorAll(".options-bar input").forEach(opt=>opt.addEventListener("change",processInput));
+
+function processInput(){
+  const input=document.getElementById("inputBox").value.trim();
+  const formattedDiv=document.getElementById("formattedOutput");
+  const outputBox=document.getElementById("outputBox");
+  formattedDiv.innerHTML="";
+  if(!input){ outputBox.value=""; return; }
+
+  const clusters = input.split(/\n\s*\n/);
+  let rawOutput="";
+
+  clusters.forEach(cluster=>{
+    const lines = cluster.split('\n').map(l=>l.trim()).filter(l=>l);
+    const fullText = lines.join('\n');
+
+    const block=document.createElement("div");
+    block.className="shloka";
+
+    if(document.getElementById("optDevanagari").checked){
+      const devEl=document.createElement("div");
+      devEl.className="devanagari";
+      devEl.textContent=fullText;
+      block.appendChild(devEl);
+      rawOutput+=fullText+"\n\n";
     }
-    return out;
-  }
-
-  function devanagariToBengali(text){
-    return Array.from(text).map(c => devanagariToBengaliMap[c]||c).join('');
-  }
-
-  function copyText(id){
-    const box = document.getElementById(id);
-    box.select();
-    box.setSelectionRange(0, 99999);
-    document.execCommand('copy');
-  }
-
-  document.getElementById("inputBox").addEventListener("input", processInput);
-  document.querySelectorAll(".options-bar input").forEach(opt => opt.addEventListener("change", processInput));
-
-  function processInput(){
-    const input = document.getElementById("inputBox").value.trim();
-    const formattedDiv = document.getElementById("formattedOutput");
-    const outputBox = document.getElementById("outputBox");
-    formattedDiv.innerHTML = "";
-    if(!input){
-      outputBox.value = "";
-      return;
+    if(document.getElementById("optBengali").checked){
+      const bengText=devanagariToBengali(fullText);
+      const benEl=document.createElement("div");
+      benEl.className="bengali";
+      benEl.textContent=bengText;
+      block.appendChild(benEl);
+      rawOutput+=bengText+"\n\n";
     }
+    if(document.getElementById("optIAST").checked){
+      const iastText=devanagariToIAST(fullText);
+      const iastEl=document.createElement("div");
+      iastEl.className="iast";
+      iastEl.textContent=iastText;
+      block.appendChild(iastEl);
+      rawOutput+=iastText+"\n\n";
+    }
+    formattedDiv.appendChild(block);
+  });
 
-    const clusters = input.split(/\n\s*\n/);
-    let rawOutput = "";
-
-    clusters.forEach(cluster=>{
-      const lines = cluster.split('\n').map(l=>l.trim()).filter(l=>l);
-      const fullText = lines.join('\n');
-
-      const block = document.createElement("div");
-      block.className = "shloka";
-
-      if(document.getElementById("optDevanagari").checked){
-        const devEl = document.createElement("div");
-        devEl.className="devanagari";
-        devEl.textContent = fullText;
-        block.appendChild(devEl);
-        rawOutput+=fullText+"\n\n";
-      }
-
-      if(document.getElementById("optBengali").checked){
-        const bengText = devanagariToBengali(fullText);
-        const benEl = document.createElement("div");
-        benEl.className="bengali";
-        benEl.textContent = bengText;
-        block.appendChild(benEl);
-        rawOutput+=bengText+"\n\n";
-      }
-
-      if(document.getElementById("optIAST").checked){
-        const iastText = devanagariToIAST(fullText);
-        const iastEl = document.createElement("div");
-        iastEl.className="iast";
-        iastEl.textContent=iastText;
-        block.appendChild(iastEl);
-        rawOutput+=iastText+"\n\n";
-      }
-
-      formattedDiv.appendChild(block);
-    });
-
-    outputBox.value = rawOutput.trim();
-  }
+  outputBox.value=rawOutput.trim();
+}
 </script>
-
 </body>
 </html>
