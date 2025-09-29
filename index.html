@@ -66,57 +66,67 @@ function detectScript(text){
 }
 
 // ------------------- MAPPINGS -------------------
-const devanagariToIASTMap = { /* same as previous */ 'क':'k','ख':'kh','ग':'g','घ':'gh','ङ':'ṅ','च':'c','छ':'ch','ज':'j','झ':'jh','ञ':'ñ','ट':'ṭ','ठ':'ṭh','ड':'ḍ','ढ':'ḍh','ण':'ṇ','त':'t','थ':'th','द':'d','ध':'dh','न':'n','प':'p','फ':'ph','ब':'b','भ':'bh','म':'m','य':'y','र':'r','ल':'l','व':'v','श':'ś','ष':'ṣ','स':'s','ह':'h','अ':'a','आ':'ā','इ':'i','ई':'ī','उ':'u','ऊ':'ū','ऋ':'ṛ','ॠ':'ṝ','ए':'e','ऐ':'ai','ओ':'o','औ':'au','ा':'ā','ि':'i','ी':'ī','ु':'u','ू':'ū','ृ':'ṛ','ॄ':'ṝ','े':'e','ै':'ai','ो':'o','ौ':'au','ं':'ṃ','ः':'ḥ','ँ':'̃','्':'','ऽ':"'",'।':'|','॥':'||','०':'0','१':'1','२':'2','३':'3','४':'4','५':'5','६':'6','७':'7','८':'8','९':'9'};
+const devanagariToIASTMap = { 'क':'k','ख':'kh','ग':'g','घ':'gh','ङ':'ṅ','च':'c','छ':'ch','ज':'j','झ':'jh','ञ':'ñ','ट':'ṭ','ठ':'ṭh','ड':'ḍ','ढ':'ḍh','ण':'ṇ','त':'t','थ':'th','द':'d','ध':'dh','न':'n','प':'p','फ':'ph','ब':'b','भ':'bh','म':'m','य':'y','र':'r','ल':'l','व':'v','श':'ś','ष':'ṣ','स':'s','ह':'h','अ':'a','आ':'ā','इ':'i','ई':'ī','उ':'u','ऊ':'ū','ऋ':'ṛ','ॠ':'ṝ','ए':'e','ऐ':'ai','ओ':'o','औ':'au','ा':'ā','ि':'i','ी':'ī','ु':'u','ू':'ū','ृ':'ṛ','ॄ':'ṝ','े':'e','ै':'ai','ो':'o','ौ':'au','ं':'ṃ','ः':'ḥ','ँ':'̃','्':'','ऽ':"'",'।':'|','॥':'||','०':'0','१':'1','२':'2','३':'3','४':'4','५':'5','६':'6','७':'7','८':'8','९':'9'};
 
-const devanagariToBengaliMap = { /* same as previous */ 'क':'ক','ख':'খ','ग':'গ','घ':'ঘ','ङ':'ঙ','च':'চ','छ':'ছ','ज':'জ','ঝ':'ঝ','ञ':'ঞ','ट':'ট','ठ':'ঠ','ड':'ড','ढ':'ঢ','ण':'ণ','त':'ত','थ':'থ','द':'দ','ध':'ধ','न':'ন','प':'প','फ':'ফ','ब':'ব','भ':'ভ','म':'ম','य':'য','र':'র','ল':'ল','व':'ব','श':'শ','ष':'ষ','स':'স','ह':'হ','अ':'অ','आ':'আ','इ':'ই','ई':'ঈ','उ':'উ','ऊ':'ঊ','ऋ':'ঋ','ॠ':'ৠ','ए':'এ','ऐ':'ঐ','ओ':'ও','औ':'ঔ','ा':'া','ि':'ি','ी':'ী','ु':'ু','ू':'ূ','ृ':'ৃ','ॄ':'ৄ','े':'ে','ै':'ৈ','ो':'ো','ौ':'ৌ','ं':'ং','ः':'ঃ','ँ':'ঁ','्':'','ऽ':"'",'।':'।','॥':'॥','०':'০','१':'১','२':'২','३':'৩','४':'৪','५':'৫','६':'৬','७':'৭','८':'৮','९':'৯'};
+const devanagariToBengaliMap = { 'क':'ক','ख':'খ','গ':'গ','ঘ':'ঘ','ङ':'ঙ','च':'চ','छ':'ছ','ज':'জ','ঝ':'ঝ','ञ':'ঞ','ट':'ট','ठ':'ঠ','ड':'ড','ढ':'ঢ','ण':'ণ','ত':'ত','থ':'থ','द':'দ','ध':'ধ','ন':'ন','প':'প','ফ':'ফ','ब':'ব','भ':'ভ','ম':'ম','य':'য','र':'র','ल':'ল','व':'ব','श':'শ','ष':'ষ','स':'স','ह':'হ','अ':'অ','आ':'আ','इ':'ই','ई':'ঈ','उ':'উ','ऊ':'ঊ','ऋ':'ঋ','ॠ':'ৠ','ए':'এ','ऐ':'ঐ','ओ':'ও','औ':'ঔ','ा':'া','ि':'ি','ी':'ী','ु':'ু','ू':'ূ','ृ':'ৃ','ॄ':'ৄ','े':'ে','ै':'ৈ','ो':'ো','ौ':'ৌ','ं':'ং','ः':'ঃ','ँ':'ঁ','्':'','ऽ':"'",'।':'।','॥':'॥','०':'০','১':'১','২':'২','৩':'৩','৪':'৪','৫':'৫','৬':'৬','৭':'৭','৮':'৮','৯':'৯'};
 
-// IAST → Devanagari/Bengali maps (partial, extend as needed)
+// IAST → Devanagari/Bengali maps
 const iastToDevanagariMap = {'k':'क','kh':'ख','g':'ग','gh':'घ','ṅ':'ङ','c':'च','ch':'छ','j':'ज','jh':'झ','ñ':'ञ','ṭ':'ट','ṭh':'ठ','ḍ':'ड','ḍh':'ढ','ṇ':'ण','t':'त','th':'थ','d':'द','dh':'ध','n':'न','p':'प','ph':'फ','b':'ब','bh':'भ','m':'म','y':'य','r':'र','l':'ल','v':'व','ś':'श','ṣ':'ष','s':'स','h':'ह','a':'अ','ā':'आ','i':'इ','ī':'ई','u':'उ','ū':'ऊ','ṛ':'ऋ','ṝ':'ॠ','e':'ए','ai':'ऐ','o':'ओ','au':'औ','ṃ':'ं','ḥ':'ः','oṃ':'ॐ'};
 const iastToBengaliMap = {'k':'ক','kh':'খ','g':'গ','gh':'ঘ','ṅ':'ঙ','c':'চ','ch':'ছ','j':'জ','jh':'ঝ','ñ':'ঞ','ṭ':'ট','ṭh':'ঠ','ḍ':'ড','ḍh':'ঢ','ṇ':'ণ','t':'ত','th':'থ','d':'দ','dh':'ধ','n':'ন','p':'প','ph':'ফ','b':'ব','bh':'ভ','m':'ম','y':'য','r':'র','l':'ল','v':'ব','ś':'শ','ṣ':'ষ','s':'স','h':'হ','a':'অ','ā':'আ','i':'ই','ī':'ঈ','u':'উ','ū':'ঊ','ṛ':'ঋ','ṝ':'ৠ','e':'এ','ai':'ঐ','o':'ও','au':'ঔ','ṃ':'ং','ḥ':'ঃ','oṃ':'ওঁ'};
 
 // ------------------- TRANS FUNCTIONS -------------------
-function devanagariToIAST(text){ text = text.replace(/ॐ/g,'oṃ'); let out=''; const chars=Array.from(text); for(let i=0;i<chars.length;i++){ const c=chars[i]; const next=chars[i+1]; let m=devanagariToIASTMap[c]||c; if(/[क-ह]/.test(c)){ if(next==='्') out+=m; else if(/[ािीुूृॄेैोौ]/.test(next)) out+=m; else out+=m+'a'; }else if(/[ािीुूृॄेैोौ]/.test(c)) out+=m; else if(c==='्') continue; else out+=m; } return out; }
-function devanagariToBengali(text){ text=text.replace(/ॐ/g,'ওঁ'); const map=devanagariToBengaliMap; let out=''; let i=0; while(i<text.length){ let c=text[i]; let next=text[i+1]; let next2=text[i+2]; let mapped=map[c]||c; if(c==='्'){ i++; continue; } if(next==='্'){ if(next2==='য') mapped+='্য',i+=2; else if(next2==='র') mapped+='্র',i+=2; else if(next2==='ল') mapped+='্ল',i+=2; else if(next2==='স') mapped+='্স',i+=2; else if(next2==='ষ') mapped+='্ষ',i+=2; else if(next2==='ক') mapped+='্ক',i+=2; else mapped+='',i++; } out+=mapped; i++; } return out; }
-function transliterateIASTtoDevanagari(text){ return text.replace(/oṃ/g,'ॐ'); /* simple version, expand for full IAST */ }
-function transliterateIASTtoBengali(text){ return text.replace(/oṃ/g,'ওঁ'); /* simple version, expand for full IAST */ }
+function devanagariToIAST(text){ text=text.replace(/ॐ/g,'oṃ'); let out=''; const chars=Array.from(text); for(let i=0;i<chars.length;i++){ const c=chars[i]; const next=chars[i+1]; let m=devanagariToIASTMap[c]||c; if(/[क-ह]/.test(c)){ if(next==='्') out+=m; else if(/[ािीुूृॄेैोौ]/.test(next)) out+=m; else out+=m+'a'; }else if(/[ािीुूृॄेैोौ]/.test(c)) out+=m; else if(c==='्') continue; else out+=m; } return out; }
+function devanagariToBengali(text){ text=text.replace(/ॐ/g,'ওঁ'); const map=devanagariToBengaliMap; let out=''; let i=0; while(i<text.length){ let c=text[i]; let next=text[i+1]; let next2=text[i+2]; let mapped=map[c]||c; if(c==='्'){ i++; continue; } if(next==='্'){ if(next2==='য') mapped+='্য',i+=2; else if(next2==='র') mapped+='্র',i+=2; else if(next2==='ল') mapped+='্ল',i+=2; else mapped+='',i++; } out+=mapped; i++; } return out; }
+function transliterateIASTtoDevanagari(text){ text=text.replace(/oṃ/g,'ॐ'); for(const key in iastToDevanagariMap){ text=text.split(key).join(iastToDevanagariMap[key]); } return text; }
+function transliterateIASTtoBengali(text){ text=text.replace(/oṃ/g,'ওঁ'); for(const key in iastToBengaliMap){ text=text.split(key).join(iastToBengaliMap[key]); } return text; }
 
-// ------------------- COPY FUNCTION -------------------
+// ------------------- COPY BUTTON -------------------
 function copyText(id, btn){
-  const box=document.getElementById(id);
-  navigator.clipboard.writeText(box.value).then(()=>{
-    const originalText = btn.textContent;
-    btn.textContent = 'Copied!';
-    setTimeout(()=>btn.textContent = originalText,1500);
-  }).catch(err=>console.error('Copy failed:', err));
+  const textarea=document.getElementById(id);
+  navigator.clipboard.writeText(textarea.value).then(()=>{
+    const old=btn.textContent; btn.textContent='Copied!'; setTimeout(()=>{btn.textContent=old;},1000);
+  });
 }
 
 // ------------------- PROCESS INPUT -------------------
-document.getElementById("inputBox").addEventListener("input",processInput);
-
 function processInput(){
   const inputText=document.getElementById("inputBox").value.trim();
   if(!inputText){document.getElementById("outputBox").value='';return;}
   const doubleDanda=document.getElementById("optDoubleDandaSpace").checked;
-  let clusters=inputText.split(/\n{1,}/).map(l=>l.trim()).filter(l=>l);
 
+  let clusters=inputText.split(/\n{2,}/).map(c=>c.trim()).filter(c=>c);
   let output='';
   const script=detectScript(inputText);
 
-  clusters.forEach(c=>{
-    let cluster=c;
-    if(doubleDanda) cluster=cluster.replace(/॥\s*॥/g,'॥  ॥').replace(/\|\|\s*\|\|/g,'||  ||');
+  clusters.forEach(cluster=>{
+    let lines=cluster.split('\n').map(l=>l.trim());
+    let clusterText=lines.join('\n');
+
+    if(doubleDanda) clusterText=clusterText.replace(/॥\s*॥/g,'॥  ॥').replace(/\|\|\s*\|\|/g,'||  ||');
+
+    let clusterOutput='';
     if(script==='iast'){
-      if(document.getElementById("optDevanagari").checked) output+=transliterateIASTtoDevanagari(cluster)+'\n';
-      if(document.getElementById("optBengali").checked) output+=transliterateIASTtoBengali(cluster)+'\n';
-      if(document.getElementById("optIAST").checked) output+=cluster+'\n';
+      if(document.getElementById("optDevanagari").checked) clusterOutput+=transliterateIASTtoDevanagari(clusterText)+'\n';
+      if(document.getElementById("optBengali").checked) clusterOutput+=transliterateIASTtoBengali(clusterText)+'\n';
+      if(document.getElementById("optIAST").checked) clusterOutput+=clusterText+'\n';
     }else{
-      if(document.getElementById("optDevanagari").checked) output+=cluster+'\n';
-      if(document.getElementById("optBengali").checked) output+=devanagariToBengali(cluster)+'\n';
-      if(document.getElementById("optIAST").checked) output+=devanagariToIAST(cluster)+'\n';
+      if(document.getElementById("optDevanagari").checked) clusterOutput+=clusterText+'\n';
+      if(document.getElementById("optBengali").checked) clusterOutput+=devanagariToBengali(clusterText)+'\n';
+      if(document.getElementById("optIAST").checked) clusterOutput+=devanagariToIAST(clusterText)+'\n';
     }
+
+    output+=clusterOutput.trim()+'\n\n';
   });
+
   document.getElementById("outputBox").value=output.trim();
 }
+
+// ------------------- AUTO-PROCESS -------------------
+document.getElementById("inputBox").addEventListener('input',processInput);
+document.getElementById("optDevanagari").addEventListener('change',processInput);
+document.getElementById("optBengali").addEventListener('change',processInput);
+document.getElementById("optIAST").addEventListener('change',processInput);
+document.getElementById("optDoubleDandaSpace").addEventListener('change',processInput);
 </script>
 
 </body>
