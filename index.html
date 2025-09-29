@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Ram Raksha Transliterator</title>
+  <style>
+    body {
+      font-family: 'Noto Serif', serif;
+      background: #f9f9f9;
+      color: #333;
+      padding: 2em;
+      max-width: 800px;
+      margin: auto;
+    }
+
+    textarea {
+      width: 100%;
+      height: 120px;
+      font-size: 1.1em;
+      padding: 10px;
+      font-family: 'Noto Serif Devanagari', serif;
+    }
+
+    button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-size: 1em;
+      background: #4caf50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    .shloka {
+      margin-top: 2em;
+      margin-bottom: 1.5em;
+    }
+
+    .devanagari {
+      font-size: 1.3em;
+      font-weight: bold;
+      color: #222;
+    }
+
+    .iast {
+      font-size: 1.1em;
+      font-style: italic;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Ram Raksha Transliterator</h1>
+  <p>Paste or type Devanagari shloka below:</p>
+
+  <textarea id="devInput" placeholder="Type or paste Devanagari shloka here..."></textarea>
+  <button onclick="processInput()">Transliterate</button>
+
+  <div id="output"></div>
+
+  <script>
+    function devanagariToIAST(input) {
+      const replacements = {
+        'क': 'k', 'ख': 'kh', 'ग': 'g', 'घ': 'gh', 'ङ': 'ṅ',
+        'च': 'c', 'छ': 'ch', 'ज': 'j', 'झ': 'jh', 'ञ': 'ñ',
+        'ट': 'ṭ', 'ठ': 'ṭh', 'ड': 'ḍ', 'ढ': 'ḍh', 'ण': 'ṇ',
+        'त': 't', 'थ': 'th', 'द': 'd', 'ध': 'dh', 'न': 'n',
+        'प': 'p', 'फ': 'ph', 'ब': 'b', 'भ': 'bh', 'म': 'm',
+        'य': 'y', 'र': 'r', 'ल': 'l', 'व': 'v',
+        'श': 'ś', 'ष': 'ṣ', 'स': 's', 'ह': 'h',
+        'अ': 'a', 'आ': 'ā', 'इ': 'i', 'ई': 'ī', 'उ': 'u', 'ऊ': 'ū',
+        'ऋ': 'ṛ', 'ॠ': 'ṝ', 'ए': 'e', 'ऐ': 'ai', 'ओ': 'o', 'औ': 'au',
+        'ा': 'ā', 'ि': 'i', 'ी': 'ī', 'ु': 'u', 'ू': 'ū', 'ृ': 'ṛ', 'ॄ': 'ṝ',
+        'े': 'e', 'ै': 'ai', 'ो': 'o', 'ौ': 'au',
+        'ं': 'ṃ', 'ः': 'ḥ', 'ँ': '̃',
+        '्': '', 'ऽ': "'", '।': '|', '॥': '||',
+        '०': '0', '१': '1', '२': '2', '३': '3', '४': '4',
+        '५': '5', '६': '6', '७': '7', '८': '8', '९': '9'
+      };
+
+      return input.split('').map(char => replacements[char] || char).join('');
+    }
+
+    function processInput() {
+      const devText = document.getElementById("devInput").value.trim();
+      if (!devText) return;
+
+      const lines = devText.split('\\n').filter(line => line.trim() !== '');
+      const outputDiv = document.getElementById("output");
+      outputDiv.innerHTML = '';
+
+      lines.forEach(line => {
+        const devLine = line.trim();
+        const iastLine = devanagariToIAST(devLine);
+
+        const shlokaBlock = document.createElement("div");
+        shlokaBlock.className = "shloka";
+
+        const devEl = document.createElement("div");
+        devEl.className = "devanagari";
+        devEl.textContent = devLine;
+
+        const iastEl = document.createElement("div");
+        iastEl.className = "iast";
+        iastEl.textContent = iastLine;
+
+        shlokaBlock.appendChild(devEl);
+        shlokaBlock.appendChild(iastEl);
+        outputDiv.appendChild(shlokaBlock);
+      });
+    }
+  </script>
+
+</body>
+</html>
