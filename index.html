@@ -45,7 +45,7 @@ body.dark .iast{color:#ccc;}
   <label><input type="checkbox" id="optDevanagari" checked> Devanagari</label>
   <label><input type="checkbox" id="optBengali"> Bengali</label>
   <label><input type="checkbox" id="optIAST" checked> IAST</label>
-  <label><input type="checkbox" id="optDoubleDandaSpace"> Add space inside '॥ _ ॥' and '|| _ ||'</label>
+  <label><input type="checkbox" id="optDoubleDandaSpace"> Add danda spacing</label>
 </div>
 
 <div class="textbox-container">
@@ -147,14 +147,14 @@ function devanagariToBengali(text){
 // ------------------- COPY FUNCTION -------------------
 function copyText(id, btn){
   const box=document.getElementById(id);
-  box.select();
-  box.setSelectionRange(0,99999);
-  document.execCommand('copy');
-  const originalText = btn.textContent;
-  btn.textContent = 'Copied!';
-  setTimeout(()=>btn.textContent = originalText,1500);
+  navigator.clipboard.writeText(box.value).then(()=>{
+    const originalText = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(()=>btn.textContent = originalText,1500);
+  }).catch(err=>{
+    console.error('Copy failed:', err);
+  });
 }
-
 // ------------------- PROCESS INPUT -------------------
 document.getElementById("inputBox").addEventListener("input",processInput);
 document.querySelectorAll(".options-bar input").forEach(opt=>opt.addEventListener("change",processInput));
