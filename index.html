@@ -30,15 +30,13 @@ textarea{width:100%;height:140px;font-size:1.1em;padding:10px;box-sizing:border-
   <label><input type="checkbox" id="optDevanagari" checked> Devanagari</label>
   <label><input type="checkbox" id="optBengali"> Bengali</label>
   <label><input type="checkbox" id="optIAST" checked> IAST</label>
-  <label><input type="checkbox" id="optDoubleDandaSpace"> Add space inside '॥ _ ॥'</label>
+  <label><input type="checkbox" id="optDoubleDandaSpace"> Add space inside '॥ _ ॥' and '|| _ ||'</label>
 </div>
 
 <div class="textbox-container">
 <textarea id="outputBox" placeholder="Output will appear here..." readonly></textarea>
 <button class="copy-btn" onclick="copyText('outputBox')">Copy</button>
 </div>
-
-<div id="formattedOutput"></div>
 
 <script>
 // ------------------- MAPPINGS -------------------
@@ -61,11 +59,11 @@ const devanagariToIASTMap = {
 
 const devanagariToBengaliMap = {
 'क':'ক','ख':'খ','ग':'গ','घ':'ঘ','ङ':'ঙ',
-'च':'চ','छ':'ছ','ज':'জ','ঝ':'ঝ','ञ':'ঞ',
+'च':'চ','छ':'ছ','ज':'জ','झ':'ঝ','ञ':'ঞ',
 'ट':'ট','ठ':'ঠ','ड':'ড','ढ':'ঢ','ण':'ণ',
 'त':'ত','थ':'থ','द':'দ','ध':'ধ','न':'ন',
-'प':'প','फ':'ফ','ब':'ব','ভ':'ভ','म':'ম',
-'य':'য','र':'র','ल':'ল','व':'ব',
+'प':'প','फ':'ফ','ब':'ব','भ':'ভ','म':'ম',
+'य':'য','र':'র','ল':'ল','व':'ব',
 'श':'শ','ष':'ষ','स':'স','ह':'হ',
 'अ':'অ','आ':'আ','इ':'ই','ई':'ঈ','उ':'উ','ऊ':'ঊ',
 'ऋ':'ঋ','ॠ':'ৠ','ए':'এ','ऐ':'ঐ','ओ':'ও','औ':'ঔ',
@@ -73,7 +71,7 @@ const devanagariToBengaliMap = {
 'े':'ে','ै':'ৈ','ो':'ো','ौ':'ৌ',
 'ं':'ং','ः':'ঃ','ँ':'ঁ',
 '्':'','ऽ':"'",'।':'।','॥':'॥',
-'०':'০','१':'১','२':'২','३':'৩','४':'৪','৫':'৫','६':'৬','৭':'৭','৮':'৮','৯':'৯'
+'०':'০','१':'১','२':'২','३':'৩','४':'৪','५':'৫','६':'৬','৭':'৭','८':'৮','९':'৯'
 };
 
 // ------------------- TRANS FUNCTIONS -------------------
@@ -95,29 +93,34 @@ function devanagariToIAST(text){
   return out;
 }
 
-// Proper Bengali with conjuncts
+// ------------------- BENGALI TRANSLITERATION -------------------
 function devanagariToBengali(text){
-  const consonants = "কখগঘঙচছজঝঞটঠডঢণতথদধনপফবভমযরলশষসহ";
+  const map = devanagariToBengaliMap;
   let out='';
   let i=0;
   while(i<text.length){
     let c=text[i];
     let next=text[i+1];
-    let mapped=devanagariToBengaliMap[c]||c;
+    let next2=text[i+2];
 
-    if(c==='्'){i++; continue;} // skip virama
+    let mapped = map[c] || c;
 
-    // Handle common conjuncts
+    if(c==='्'){ i++; continue; }
+
+    // Common Sanskrit conjuncts
     if(next==='्'){
-      const next2=text[i+2];
-      if(next2==='य') { mapped += '্য'; i+=2; }
-      else if(next2==='র') { mapped += '্র'; i+=2; }
-      else if(next2==='ल') { mapped += '্ল'; i+=2; }
-      else if(next2==='स') { mapped += '্স'; i+=2; }
-      else if(next2==='ष') { mapped += '্ষ'; i+=2; }
-      else if(next2==='त') { mapped += '্ত'; i+=2; }
-      else if(next2==='र' && c==='স'){ mapped += '্র'; i+=2; } // s+r -> sr
-      // you can extend with other common conjuncts
+      if(next2==='य') mapped+='্য', i+=2;
+      else if(next2==='र') mapped+='্র', i+=2;
+      else if(next2==='ल') mapped+='্ল', i+=2;
+      else if(next2==='स') mapped+='্স', i+=2;
+      else if(next2==='ष') mapped+='্ষ', i+=2;
+      else if(next2==='क') mapped+='্ক', i+=2;
+      else if(next2==='त्र') mapped+='্ত্র', i+=2;
+      else if(next2==='ज्ञ') mapped+='জ্ঞ', i+=2;
+      else if(next2==='क्ष') mapped+='ক্ষ', i+=2;
+      else if(next2==='श्र') mapped+='শ্র', i+=2;
+      else if(next2==='ह्न') mapped+='হ্ন', i+=2;
+      else mapped+='', i++;
     }
 
     out+=mapped;
@@ -140,9 +143,7 @@ document.querySelectorAll(".options-bar input").forEach(opt=>opt.addEventListene
 
 function processInput(){
   const input=document.getElementById("inputBox").value;
-  const formattedDiv=document.getElementById("formattedOutput");
   const outputBox=document.getElementById("outputBox");
-  formattedDiv.innerHTML="";
   if(!input){ outputBox.value=""; return; }
 
   const clusters = input.split(/\n\s*\n/);
@@ -152,42 +153,19 @@ function processInput(){
     const lines = cluster.split('\n').map(l=>l.trim()).filter(l=>l);
     const fullText = lines.join('\n');
 
-    const block=document.createElement("div");
-    block.className="shloka";
-
     let clusterOutput="";
 
-    if(document.getElementById("optDevanagari").checked){
-      const devEl=document.createElement("div");
-      devEl.className="devanagari";
-      devEl.textContent=fullText;
-      block.appendChild(devEl);
-      clusterOutput+=fullText+"\n";
-    }
-    if(document.getElementById("optBengali").checked){
-      const bengText=devanagariToBengali(fullText);
-      const benEl=document.createElement("div");
-      benEl.className="bengali";
-      benEl.textContent=bengText;
-      block.appendChild(benEl);
-      clusterOutput+=bengText+"\n";
-    }
-    if(document.getElementById("optIAST").checked){
-      const iastText=devanagariToIAST(fullText);
-      const iastEl=document.createElement("div");
-      iastEl.className="iast";
-      iastEl.textContent=iastText;
-      block.appendChild(iastEl);
-      clusterOutput+=iastText+"\n";
-    }
+    if(document.getElementById("optDevanagari").checked) clusterOutput+=fullText+"\n";
+    if(document.getElementById("optBengali").checked) clusterOutput+=devanagariToBengali(fullText)+"\n";
+    if(document.getElementById("optIAST").checked) clusterOutput+=devanagariToIAST(fullText)+"\n";
 
-    // Apply double danda spacing
+    // Double danda and || spacing
     if(document.getElementById("optDoubleDandaSpace").checked){
-      clusterOutput = clusterOutput.replace(/॥\s*(.*?)\s*॥/g, '॥ $1 ॥');
+      clusterOutput = clusterOutput.replace(/॥\s*(.*?)\s*॥/g,'॥ $1 ॥');
+      clusterOutput = clusterOutput.replace(/\|\|\s*(.*?)\s*\|\|/g,'|| $1 ||');
     }
 
-    formattedDiv.appendChild(block);
-    rawOutput+=clusterOutput.trim();
+    rawOutput += clusterOutput.trim();
     if(idx<clusters.length-1) rawOutput+="\n\n";
   });
 
