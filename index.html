@@ -19,10 +19,23 @@
       font-size: 1.1em;
       padding: 10px;
       font-family: 'Noto Serif Devanagari', serif;
+      white-space: pre-wrap;
+    }
+
+    .options-bar {
+      margin-top: 15px;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    select {
+      padding: 6px 10px;
+      font-size: 1em;
     }
 
     button {
-      margin-top: 10px;
       padding: 10px 20px;
       font-size: 1em;
       background: #4caf50;
@@ -50,6 +63,13 @@
       color: #555;
       white-space: pre-wrap;
     }
+
+    .bengali {
+      font-size: 1.2em;
+      font-family: 'Noto Serif Bengali', serif;
+      color: #333;
+      white-space: pre-wrap;
+    }
   </style>
 </head>
 <body>
@@ -58,11 +78,22 @@
   <p>Paste or type Devanagari shloka below:</p>
 
   <textarea id="devInput" placeholder="Enter text here"></textarea>
-  <button onclick="processInput()">Transliterate</button>
+
+  <div class="options-bar">
+    <label for="scriptSelect">Output:</label>
+    <select id="scriptSelect">
+      <option value="both" selected>Devanagari + IAST</option>
+      <option value="devanagari">Devanagari only</option>
+      <option value="iast">IAST only</option>
+      <option value="bengali">Bengali</option>
+    </select>
+    <button onclick="processInput()">Transliterate</button>
+  </div>
 
   <div id="output"></div>
 
   <script>
+    // Consonants and vowels for Devanagari -> IAST
     const consonants = {
       'क': 'k', 'ख': 'kh', 'ग': 'g', 'घ': 'gh', 'ङ': 'ṅ',
       'च': 'c', 'छ': 'ch', 'ज': 'j', 'झ': 'jh', 'ञ': 'ñ',
@@ -92,6 +123,30 @@
       'ऽ': "'",
       'ॐ': 'oṃ'
     };
+
+    // IAST -> Bengali transliteration
+    const iastToBengaliMap = [
+      // Order matters: handle longer sequences first
+      [/ai/g, 'ৈ'], [/au/g, 'ৌ'],
+      [/ā/g, 'া'], [/ī/g, 'ী'], [/i/g, 'ি'],
+      [/ū/g, 'ূ'], [/u/g, 'ু'],
+      [/ṛ/g, 'ৃ'],
+      [/e/g, 'ে'], [/o/g, 'ো'],
+
+      [/kh/g, 'খ'], [/gh/g, 'ঘ'], [/ch/g, 'ছ'],
+      [/jh/g, 'ঝ'], [/ṭh/g, 'ঠ'], [/ḍh/g, 'ঢ'],
+      [/th/g, 'থ'], [/dh/g, 'ধ'], [/ph/g, 'ফ'], [/bh/g, 'ভ'],
+
+      [/k/g, 'ক'], [/g/g, 'গ'], [/ṅ/g, 'ঙ'],
+      [/c/g, 'চ'], [/j/g, 'জ'], [/ñ/g, 'ঞ'],
+      [/ṭ/g, 'ট'], [/ḍ/g, 'ড'], [/ṇ/g, 'ণ'],
+      [/t/g, 'ত'], [/d/g, 'দ'], [/n/g, 'ন'],
+      [/p/g, 'প'], [/b/g, 'ব'], [/m/g, 'ম'],
+      [/y/g, 'য'], [/r/g, 'র'], [/l/g, 'ল'], [/v/g, 'ব'],
+      [/ś/g, 'শ'], [/ṣ/g, 'ষ'], [/s/g, 'স'], [/h/g, 'হ'],
+      [/ṃ/g, 'ং'], [/ḥ/g, 'ঃ'], [/'/g, '’'],
+      [/\|/g, '।'], [/oṃ/g, 'ওঁ']
+    ];
 
     function devanagariToIAST(text) {
       let result = '';
@@ -128,35 +183,54 @@
       return result;
     }
 
+    function iastToBengali(text) {
+      let output = text;
+      for (const [regex, rep] of iastToBengaliMap) {
+        output = output.replace(regex, rep);
+      }
+      return output;
+    }
+
     function processInput() {
       const rawText = document.getElementById("devInput").value.trim();
+      const mode = document.getElementById("scriptSelect").value;
       if (!rawText) return;
 
-      // Split into clusters on DOUBLE line breaks (paragraph breaks)
-      const clusters = rawText.split(/\n\s*\n/);
+      const clusters = rawText
+        .split(/\n\s*\n/)
+        .map(cluster => cluster.split('\n').map(line => line.trim()).join('\n'))
+        .filter(c => c.length > 0);
 
       const outputDiv = document.getElementById("output");
       outputDiv.innerHTML = '';
 
       clusters.forEach(cluster => {
-        const devCluster = cluster.trim();
-        if (!devCluster) return;
-
-        const iastCluster = devanagariToIAST(devCluster);
-
         const shlokaBlock = document.createElement("div");
         shlokaBlock.className = "shloka";
 
-        const devEl = document.createElement("div");
-        devEl.className = "devanagari";
-        devEl.textContent = devCluster;
+        if (mode === 'devanagari' || mode === 'both') {
+          const devEl = document.createElement("div");
+          devEl.className = "devanagari";
+          devEl.textContent = cluster;
+          shlokaBlock.appendChild(devEl);
+        }
 
-        const iastEl = document.createElement("div");
-        iastEl.className = "iast";
-        iastEl.textContent = iastCluster;
+        if (mode === 'iast' || mode === 'both' || mode === 'bengali') {
+          const iast = devanagariToIAST(cluster);
+          if (mode === 'iast' || mode === 'both') {
+            const iastEl = document.createElement("div");
+            iastEl.className = "iast";
+            iastEl.textContent = iast;
+            shlokaBlock.appendChild(iastEl);
+          }
+          if (mode === 'bengali') {
+            const bengEl = document.createElement("div");
+            bengEl.className = "bengali";
+            bengEl.textContent = iastToBengali(iast);
+            shlokaBlock.appendChild(bengEl);
+          }
+        }
 
-        shlokaBlock.appendChild(devEl);
-        shlokaBlock.appendChild(iastEl);
         outputDiv.appendChild(shlokaBlock);
       });
     }
