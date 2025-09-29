@@ -2,45 +2,39 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Stotram Transliterator + Formatter (Bidirectional)</title>
+  <title>Stotram/Path Transliterator + Formatter</title>
   <style>
     body {
       font-family: 'Noto Serif', serif;
       background: #f9f9f9;
       color: #333;
       padding: 2em;
-      max-width: 800px;
+      max-width: 900px;
       margin: auto;
     }
 
     textarea {
       width: 100%;
-      height: 150px;
+      height: 140px;
       font-size: 1.1em;
       padding: 10px;
-      font-family: 'Noto Serif Devanagari', serif;
+      margin-bottom: 10px;
+      font-family: 'Noto Serif Devanagari', 'Noto Serif Bengali', serif;
     }
 
     .options-bar {
-      margin-top: 10px;
-      margin-bottom: 10px;
       display: flex;
-      gap: 10px;
-      background: #e6e6e6;
-      padding: 10px;
-      border-radius: 6px;
-      justify-content: center;
+      justify-content: space-between;
+      margin-bottom: 1em;
     }
 
-    .options-bar label {
-      display: flex;
-      align-items: center;
-      gap: 5px;
+    select {
+      padding: 6px;
+      font-size: 1em;
     }
 
     button {
-      margin-top: 10px;
-      padding: 10px 20px;
+      padding: 8px 16px;
       font-size: 1em;
       background: #4caf50;
       color: white;
@@ -53,10 +47,19 @@
       margin-bottom: 1.5em;
     }
 
-    .devanagari, .bengali {
+    .devanagari {
       font-size: 1.3em;
       font-weight: bold;
       color: #222;
+      font-family: 'Noto Serif Devanagari', serif;
+      white-space: pre-wrap;
+    }
+
+    .bengali {
+      font-size: 1.3em;
+      font-weight: bold;
+      color: #222;
+      font-family: 'Noto Serif Bengali', serif;
       white-space: pre-wrap;
     }
 
@@ -66,158 +69,211 @@
       color: #555;
       white-space: pre-wrap;
     }
-
-    h2 {
-      margin-top: 2em;
-    }
   </style>
 </head>
 <body>
 
-  <h1>Stotram/Path Transliterator + Formatter</h1>
+  <h1>📜 Stotram/Path Transliterator + Formatter</h1>
+  <p>Paste or type text below, select input and output scripts, then click <b>Transliterate</b>.</p>
 
-  <h2>Input</h2>
-  <div class="options-bar" id="inputModeBar">
-    <label><input type="radio" name="inputMode" value="devanagari" checked> Devanagari</label>
-    <label><input type="radio" name="inputMode" value="bengali"> Bengali</label>
-    <label><input type="radio" name="inputMode" value="iast"> IAST</label>
+  <textarea id="inputBox" placeholder="Enter text here..."></textarea>
+
+  <div class="options-bar">
+    <div>
+      Input: 
+      <select id="inputScript">
+        <option value="devanagari">Devanagari</option>
+        <option value="bengali">Bengali</option>
+        <option value="iast">IAST</option>
+      </select>
+    </div>
+    <div>
+      Output: 
+      <select id="outputScript">
+        <option value="iast">IAST</option>
+        <option value="devanagari">Devanagari</option>
+        <option value="bengali">Bengali</option>
+        <option value="both">Both (Original + IAST)</option>
+      </select>
+    </div>
+    <button onclick="processInput()">Transliterate</button>
   </div>
-
-  <textarea id="textInput" placeholder="Enter text here"></textarea>
-
-  <h2>Output</h2>
-  <div class="options-bar" id="outputModeBar">
-    <label><input type="radio" name="outputMode" value="both" checked> Both</label>
-    <label><input type="radio" name="outputMode" value="devanagari"> Devanagari</label>
-    <label><input type="radio" name="outputMode" value="bengali"> Bengali</label>
-    <label><input type="radio" name="outputMode" value="iast"> IAST</label>
-  </div>
-
-  <button onclick="processInput()">Transliterate</button>
 
   <div id="output"></div>
 
-  <script>
-    // Devanagari → IAST
-    const devToIAST = {
-      'क':'k','ख':'kh','ग':'g','घ':'gh','ङ':'ṅ',
-      'च':'c','छ':'ch','ज':'j','झ':'jh','ञ':'ñ',
-      'ट':'ṭ','ठ':'ṭh','ड':'ḍ','ढ':'ḍh','ण':'ṇ',
-      'त':'t','थ':'th','द':'d','ध':'dh','न':'n',
-      'प':'p','फ':'ph','ब':'b','भ':'bh','म':'m',
-      'य':'y','र':'r','ल':'l','व':'v',
-      'श':'ś','ष':'ṣ','स':'s','ह':'h',
-      'अ':'a','आ':'ā','इ':'i','ई':'ī','उ':'u','ऊ':'ū',
-      'ऋ':'ṛ','ॠ':'ṝ','ए':'e','ऐ':'ai','ओ':'o','औ':'au',
-      'ा':'ā','ि':'i','ी':'ī','ु':'u','ू':'ū','ृ':'ṛ','ॄ':'ṝ',
-      'े':'e','ै':'ai','ो':'o','ौ':'au',
-      'ं':'ṃ','ः':'ḥ','ँ':'̃','्':'','ऽ':"'",'।':'|','॥':'||',
-      '०':'0','१':'1','२':'2','३':'3','४':'4','५':'5','६':'6','७':'7','८':'8','९':'9'
-    };
+<script>
+  // --- Mappings ---
+  const devToIAST = {
+    'क':'k','ख':'kh','ग':'g','घ':'gh','ङ':'ṅ',
+    'च':'c','छ':'ch','ज':'j','झ':'jh','ञ':'ñ',
+    'ट':'ṭ','ठ':'ṭh','ड':'ḍ','ढ':'ḍh','ण':'ṇ',
+    'त':'t','थ':'th','द':'d','ध':'dh','न':'n',
+    'प':'p','फ':'ph','ब':'b','भ':'bh','म':'m',
+    'य':'y','र':'r','ल':'l','व':'v',
+    'श':'ś','ष':'ṣ','स':'s','ह':'h',
+    'अ':'a','आ':'ā','इ':'i','ई':'ī','उ':'u','ऊ':'ū',
+    'ऋ':'ṛ','ॠ':'ṝ','ए':'e','ऐ':'ai','ओ':'o','औ':'au',
+    'ा':'ā','ि':'i','ी':'ī','ु':'u','ू':'ū','ृ':'ṛ','ॄ':'ṝ',
+    'े':'e','ै':'ai','ो':'o','ौ':'au',
+    'ं':'ṃ','ः':'ḥ','ँ':'̃',
+    '्':'','ऽ':"'",'।':'|','॥':'||',
+    '०':'0','१':'1','२':'2','३':'3','४':'4','५':'5','६':'6','७':'7','८':'8','९':'9'
+  };
 
-    // Bengali → IAST
-    const benToIAST = {
-      'ক':'k','খ':'kh','গ':'g','ঘ':'gh','ঙ':'ṅ',
-      'চ':'c','ছ':'ch','জ':'j','ঝ':'jh','ঞ':'ñ',
-      'ট':'ṭ','ঠ':'ṭh','ড':'ḍ','ঢ':'ḍh','ণ':'ṇ',
-      'ত':'t','থ':'th','দ':'d','ধ':'dh','ন':'n',
-      'প':'p','ফ':'ph','ব':'b','ভ':'bh','ম':'m',
-      'য':'y','র':'r','ল':'l','শ':'ś','ষ':'ṣ','স':'s','হ':'h',
-      'অ':'a','আ':'ā','ই':'i','ঈ':'ī','উ':'u','ঊ':'ū',
-      'ঋ':'ṛ','ৠ':'ṝ','এ':'e','ঐ':'ai','ও':'o','ঔ':'au',
-      'া':'ā','ি':'i','ী':'ī','ু':'u','ূ':'ū','ৃ':'ṛ',
-      'ে':'e','ৈ':'ai','ো':'o','ৌ':'au',
-      'ং':'ṃ','ঃ':'ḥ','ঁ':'̃','্':'','।':'|','॥':'||',
-      '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9'
-    };
+  const benToIAST = {
+    'ক':'k','খ':'kh','গ':'g','ঘ':'gh','ঙ':'ṅ',
+    'চ':'c','ছ':'ch','জ':'j','ঝ':'jh','ঞ':'ñ',
+    'ট':'ṭ','ঠ':'ṭh','ড':'ḍ','ঢ':'ḍh','ণ':'ṇ',
+    'ত':'t','থ':'th','দ':'d','ধ':'dh','ন':'n',
+    'প':'p','ফ':'ph','ব':'b','ভ':'bh','ম':'m',
+    'য':'y','র':'r','ল':'l','শ':'ś','ষ':'ṣ','স':'s','হ':'h',
+    'অ':'a','আ':'ā','ই':'i','ঈ':'ī','উ':'u','ঊ':'ū','ঋ':'ṛ','ৠ':'ṝ',
+    'এ':'e','ঐ':'ai','ও':'o','ঔ':'au',
+    'া':'ā','ি':'i','ী':'ī','ু':'u','ূ':'ū','ৃ':'ṛ','ৄ':'ṝ',
+    'ে':'e','ৈ':'ai','ো':'o','ৌ':'au',
+    'ং':'ṃ','ঃ':'ḥ','ঁ':'̃',
+    '্':'','।':'|','॥':'||',
+    '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9'
+  };
 
-    // IAST → Devanagari (basic reverse)
-    const iastToDev = [
-      ['ā','आ'],['ī','ई'],['ū','ऊ'],['ṛ','ऋ'],['ṝ','ॠ'],
-      ['ṅ','ङ'],['ñ','ञ'],['ṭh','ठ'],['ṭ','ट'],['ḍh','ढ'],['ḍ','ड'],['ṇ','ण'],
-      ['ś','श'],['ṣ','ष'],['ḥ','ः'],['ṃ','ं'],["'",'ऽ'],
-      ['ai','ऐ'],['au','औ'],
-      ['a','अ'],['i','इ'],['u','उ'],['e','ए'],['o','ओ'],
-      ['kh','ख'],['gh','घ'],['ch','छ'],['jh','झ'],['th','थ'],['dh','ध'],['ph','फ'],['bh','भ'],
-      ['k','क'],['g','ग'],['c','च'],['j','ज'],['t','त'],['d','द'],['n','न'],['p','प'],['b','ब'],
-      ['m','म'],['y','य'],['r','र'],['l','ल'],['v','व'],['s','स'],['h','ह']
-    ];
-
-    // IAST → Bengali (basic reverse)
-    const iastToBen = [
-      ['ā','আ'],['ī','ঈ'],['ū','ঊ'],['ṛ','ঋ'],['ṝ','ৠ'],
-      ['ṅ','ঙ'],['ñ','ঞ'],['ṭh','ঠ'],['ṭ','ট'],['ḍh','ঢ'],['ḍ','ড'],['ṇ','ণ'],
-      ['ś','শ'],['ṣ','ষ'],['ḥ','ঃ'],['ṃ','ং'],["'",''],
-      ['ai','ঐ'],['au','ঔ'],
-      ['a','অ'],['i','ই'],['u','উ'],['e','এ'],['o','ও'],
-      ['kh','খ'],['gh','ঘ'],['ch','ছ'],['jh','ঝ'],['th','থ'],['dh','ধ'],['ph','ফ'],['bh','ভ'],
-      ['k','ক'],['g','গ'],['c','চ'],['j','জ'],['t','ত'],['d','দ'],['n','ন'],['p','প'],['b','ব'],
-      ['m','ম'],['y','য'],['r','র'],['l','ল'],['v','ব'],['s','স'],['h','হ']
-    ];
-
-    function toIAST(text, from) {
-      if (from === 'devanagari') return text.split('').map(c => devToIAST[c] || c).join('');
-      if (from === 'bengali') return text.split('').map(c => benToIAST[c] || c).join('');
-      return text;
+  function isConsonantDevanagari(c) {
+    return /[क-ह]/.test(c);
+  }
+  function isVowelSignDevanagari(c) {
+    return /[ािीुूृॄेैोौ]/.test(c);
+  }
+  function devanagariToIAST(input) {
+    let output = '';
+    const chars = Array.from(input);
+    for (let i = 0; i < chars.length; i++) {
+      const c = chars[i], next = chars[i+1];
+      const mapped = devToIAST[c] || c;
+      if (isConsonantDevanagari(c)) {
+        if (next === '्') output += mapped;
+        else if (isVowelSignDevanagari(next)) output += mapped;
+        else output += mapped + 'a';
+      } else if (isVowelSignDevanagari(c)) output += mapped;
+      else if (c === '्') continue;
+      else output += mapped;
     }
+    return output;
+  }
 
-    function fromIAST(text, to) {
-      let out = text;
-      const map = to === 'devanagari' ? iastToDev : iastToBen;
-      for (const [iast, char] of map) {
-        const re = new RegExp(iast, 'g');
-        out = out.replace(re, char);
+  function isConsonantBengali(c) {
+    return /[ক-হ]/.test(c);
+  }
+  function isVowelSignBengali(c) {
+    return /[ািীুূৃৄেৈোৌ]/.test(c);
+  }
+  function bengaliToIAST(input) {
+    let output = '';
+    const chars = Array.from(input);
+    for (let i = 0; i < chars.length; i++) {
+      const c = chars[i], next = chars[i+1];
+      const mapped = benToIAST[c] || c;
+      if (isConsonantBengali(c)) {
+        if (next === '্') output += mapped;
+        else if (isVowelSignBengali(next)) output += mapped;
+        else output += mapped + 'a';
+      } else if (isVowelSignBengali(c)) output += mapped;
+      else if (c === '্') continue;
+      else output += mapped;
+    }
+    return output;
+  }
+
+  // --- Reverse IAST ---
+  function iastToDevanagari(iast) {
+    // naive reverse mapping for demo (extendable)
+    let out = iast;
+    for (const [key,val] of Object.entries(devToIAST)) {
+      out = out.replace(new RegExp(val,'g'), key);
+    }
+    return out;
+  }
+
+  function iastToBengali(iast) {
+    let out = iast;
+    for (const [key,val] of Object.entries(benToIAST)) {
+      out = out.replace(new RegExp(val,'g'), key);
+    }
+    return out;
+  }
+
+  function toIAST(text, from) {
+    if (from === 'devanagari') return devanagariToIAST(text);
+    if (from === 'bengali') return bengaliToIAST(text);
+    return text;
+  }
+
+  function fromIAST(text, to) {
+    if (to === 'devanagari') return iastToDevanagari(text);
+    if (to === 'bengali') return iastToBengali(text);
+    return text;
+  }
+
+  // --- Main Processing ---
+  function processInput() {
+    const inputText = document.getElementById("inputBox").value.trim();
+    const inputScript = document.getElementById("inputScript").value;
+    const outputScript = document.getElementById("outputScript").value;
+    const outputDiv = document.getElementById("output");
+    outputDiv.innerHTML = '';
+
+    if (!inputText) return;
+
+    const clusters = inputText.split(/\n\s*\n/); // separate by double line breaks
+
+    clusters.forEach(cluster => {
+      const clusterTrimmed = cluster.trim();
+      if (!clusterTrimmed) return;
+
+      let iastText;
+      if (inputScript === 'iast') iastText = clusterTrimmed;
+      else iastText = toIAST(clusterTrimmed, inputScript);
+
+      let outBlock = document.createElement('div');
+      outBlock.className = 'shloka';
+
+      if (outputScript === 'iast') {
+        const el = document.createElement('div');
+        el.className = 'iast';
+        el.textContent = iastText;
+        outBlock.appendChild(el);
       }
-      return out;
-    }
+      else if (outputScript === 'devanagari') {
+        const devText = inputScript === 'iast' ? fromIAST(iastText, 'devanagari') : clusterTrimmed;
+        const el = document.createElement('div');
+        el.className = 'devanagari';
+        el.textContent = devText;
+        outBlock.appendChild(el);
+      }
+      else if (outputScript === 'bengali') {
+        const benText = inputScript === 'iast' ? fromIAST(iastText, 'bengali') : clusterTrimmed;
+        const el = document.createElement('div');
+        el.className = 'bengali';
+        el.textContent = benText;
+        outBlock.appendChild(el);
+      }
+      else if (outputScript === 'both') {
+        // original (as typed)
+        const origEl = document.createElement('div');
+        origEl.className = inputScript === 'bengali' ? 'bengali' :
+                           inputScript === 'devanagari' ? 'devanagari' : 'iast';
+        origEl.textContent = clusterTrimmed;
+        outBlock.appendChild(origEl);
 
-    function processInput() {
-      const inputMode = document.querySelector('input[name="inputMode"]:checked').value;
-      const outputMode = document.querySelector('input[name="outputMode"]:checked').value;
-      const inputText = document.getElementById("textInput").value.trim();
-      if (!inputText) return;
+        // iast
+        const iastEl = document.createElement('div');
+        iastEl.className = 'iast';
+        iastEl.textContent = iastText;
+        outBlock.appendChild(iastEl);
+      }
 
-      const outputDiv = document.getElementById("output");
-      outputDiv.innerHTML = '';
-
-      // Break into clusters by double line breaks
-      const clusters = inputText.split(/\n\s*\n/).map(c => c.trim()).filter(c => c);
-
-      clusters.forEach(cluster => {
-        const shlokaEl = document.createElement("div");
-        shlokaEl.className = "shloka";
-
-        let iast = inputMode === 'iast' ? cluster : toIAST(cluster, inputMode);
-        let dev = inputMode === 'devanagari' ? cluster : (inputMode === 'iast' ? fromIAST(iast, 'devanagari') : '');
-        let ben = inputMode === 'bengali' ? cluster : (inputMode === 'iast' ? fromIAST(iast, 'bengali') : '');
-
-        if (outputMode === 'iast' || outputMode === 'both') {
-          const iastEl = document.createElement("div");
-          iastEl.className = "iast";
-          iastEl.textContent = iast;
-          shlokaEl.appendChild(iastEl);
-        }
-        if (outputMode === 'devanagari' || outputMode === 'both') {
-          if (dev) {
-            const devEl = document.createElement("div");
-            devEl.className = "devanagari";
-            devEl.textContent = dev;
-            shlokaEl.insertBefore(devEl, shlokaEl.firstChild);
-          }
-        }
-        if (outputMode === 'bengali' || outputMode === 'both') {
-          if (ben) {
-            const benEl = document.createElement("div");
-            benEl.className = "bengali";
-            benEl.textContent = ben;
-            shlokaEl.insertBefore(benEl, shlokaEl.firstChild);
-          }
-        }
-
-        outputDiv.appendChild(shlokaEl);
-      });
-    }
-  </script>
+      outputDiv.appendChild(outBlock);
+    });
+  }
+</script>
 
 </body>
 </html>
