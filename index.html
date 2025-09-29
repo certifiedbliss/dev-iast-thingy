@@ -4,11 +4,11 @@
 <meta charset="UTF-8">
 <title>Stotram/Path Transliterator + Formatter</title>
 <style>
-body { font-family: 'Noto Serif', serif; background: #f9f9f9; color:#333; padding:2em; max-width:900px; margin:auto; transition: background 0.3s, color 0.3s;}
-body.dark { background:#121212; color:#eee; }
+body { font-family:'Noto Serif',serif; background:#f9f9f9; color:#333; padding:2em; max-width:900px; margin:auto; transition: background 0.3s, color 0.3s;}
+body.dark { background:#121212; color:#eee;}
 h1{text-align:center;margin-bottom:1em;}
 .textbox-container{position:relative;margin-bottom:1em;}
-textarea{width:100%;height:140px;font-size:1.1em;padding:10px;box-sizing:border-box;white-space:pre-wrap;font-family:'Noto Serif Devanagari','Noto Serif Bengali',serif;background:white;color:#333;border:1px solid #ccc;border-radius:4px;transition: background 0.3s, color 0.3s;}
+textarea{width:100%;height:140px;font-size:1.1em;padding:10px;box-sizing:border-box;white-space:pre-wrap;font-family:'Noto Serif Devanagari','Noto Serif Bengali','Noto Serif',serif;background:white;color:#333;border:1px solid #ccc;border-radius:4px;transition: background 0.3s, color 0.3s;}
 body.dark textarea{background:#1e1e1e;color:#eee;border:1px solid #444;}
 .copy-btn{position:absolute;top:10px;right:10px;padding:5px 10px;background:#4caf50;color:white;border:none;cursor:pointer;font-size:0.9em;border-radius:4px;transition: background 0.3s;}
 .copy-btn:active{background:#45a049;}
@@ -42,10 +42,10 @@ body.dark .iast{color:#ccc;}
 </div>
 
 <div class="options-bar">
-  <label><input type="checkbox" id="optDevanagari" checked> Devanagari</label>
-  <label><input type="checkbox" id="optBengali"> Bengali</label>
-  <label><input type="checkbox" id="optIAST" checked> IAST</label>
-  <label><input type="checkbox" id="optDoubleDandaSpace"> Add space inside '॥ _ ॥' and '|| _ ||'</label>
+<label><input type="checkbox" id="optDevanagari" checked> Devanagari</label>
+<label><input type="checkbox" id="optBengali"> Bengali</label>
+<label><input type="checkbox" id="optIAST" checked> IAST</label>
+<label><input type="checkbox" id="optDoubleDandaSpace"> Add space inside '॥ _ ॥' and '|| _ ||'</label>
 </div>
 
 <div class="textbox-container">
@@ -61,15 +61,46 @@ function toggleDark(){ document.body.classList.toggle('dark'); }
 function detectScript(text){
   if(/[ঀ-৿]/.test(text)) return 'ben';
   if(/[ऀ-ॿ]/.test(text)) return 'dev';
-  if(/[A-Za-zāīūṛṝṅñṭḍṇśṣḥṃŗāīūŕṝoṃ]+/.test(text)) return 'iast';
+  if(/[A-Za-zāīūṛṝṅñṭḍṇśṣḥṃŕō]+/.test(text)) return 'iast';
   return 'unknown';
 }
 
-// ------------------- TRANS FUNCTIONS -------------------
-function devanagariToIAST(text){ return text.replace(/ॐ/g,'oṃ'); /* implement mapping as before, simplified for brevity */ }
-function devanagariToBengali(text){ return text.replace(/ॐ/g,'ওঁ'); /* implement mapping as before */ }
-function transliterateIASTtoDevanagari(text){ return text.replace(/oṃ/g,'ॐ'); /* mapping */ }
-function transliterateIASTtoBengali(text){ return text.replace(/oṃ/g,'ওঁ'); /* mapping */ }
+// ------------------- TRANSLITERATION MAPS -------------------
+// Full Devanagari → IAST
+const devToIASTMap = {
+  'अ':'a','आ':'ā','इ':'i','ई':'ī','उ':'u','ऊ':'ū','ऋ':'ṛ','ॠ':'ṝ',
+  'ए':'e','ऐ':'ai','ओ':'o','औ':'au','क':'k','ख':'kh','ग':'g','घ':'gh','ङ':'ṅ',
+  'च':'c','छ':'ch','ज':'j','झ':'jh','ञ':'ñ','ट':'ṭ','ठ':'ṭh','ड':'ḍ','ढ':'ḍh','ण':'ṇ',
+  'त':'t','थ':'th','द':'d','ध':'dh','न':'n','प':'p','फ':'ph','ब':'b','भ':'bh','म':'m',
+  'य':'y','र':'r','ल':'l','व':'v','श':'ś','ष':'ṣ','स':'s','ह':'h',
+  'ा':'ā','ि':'i','ी':'ī','ु':'u','ू':'ū','ृ':'ṛ','ॄ':'ṝ','े':'e','ै':'ai','ो':'o','ौ':'au',
+  'ं':'ṃ','ः':'ḥ','ँ':'̃','्':'','।':'|','॥':'||','०':'0','१':'1','२':'2','३':'3','४':'4',
+  '५':'5','६':'6','७':'7','८':'8','९':'9','ॐ':'oṃ'
+};
+
+// Full Devanagari → Bengali
+const devToBenMap = {
+  'अ':'অ','आ':'আ','इ':'ই','ई':'ঈ','उ':'উ','ऊ':'ঊ','ऋ':'ঋ','ॠ':'ৠ',
+  'ए':'এ','ऐ':'ঐ','ओ':'ও','औ':'ঔ','क':'ক','ख':'খ','ग':'গ','घ':'ঘ','ङ':'ঙ',
+  'च':'চ','छ':'ছ','ज':'জ','झ':'ঝ','ञ':'ঞ','ट':'ট','ठ':'ঠ','ड':'ড','ढ':'ঢ','ण':'ণ',
+  'त':'ত','थ':'থ','द':'দ','ध':'ধ','न':'ন','प':'প','फ':'ফ','ब':'ব','भ':'ভ','म':'ম',
+  'य':'য','र':'র','ल':'ল','व':'ব','श':'শ','ष':'ষ','स':'স','ह':'হ',
+  'ा':'া','ि':'ি','ी':'ী','ु':'ু','ू':'ূ','ृ':'ৃ','ॄ':'ৄ','े':'ে','ै':'ৈ','ो':'ো','ौ':'ৌ',
+  'ं':'ং','ः':'ঃ','ँ':'ঁ','्':'','।':'।','॥':'॥','०':'০','१':'১','२':'২','३':'৩','৪':'৪',
+  '५':'৫','६':'৬','৭':'৭','৮':'৮','९':'৯','ॐ':'ওঁ'
+};
+
+function devanagariToIAST(text){ return text.split('').map(c=>devToIASTMap[c]||c).join(''); }
+function devanagariToBengali(text){ return text.split('').map(c=>devToBenMap[c]||c).join(''); }
+function transliterateIASTtoDevanagari(text){
+  let revMap = Object.entries(devToIASTMap).reduce((a,[k,v])=>{a[v]=k;return a;},{});
+  // sort by length descending to handle multi-character vowels first
+  return Object.keys(revMap).sort((a,b)=>b.length-a.length).reduce((t,k)=>t.replaceAll(k,revMap[k]), text);
+}
+function transliterateIASTtoBengali(text){
+  let revMap = Object.entries(devToBenMap).reduce((a,[k,v])=>{a[devToIASTMap[k]]=v;return a;},{});
+  return Object.keys(revMap).sort((a,b)=>b.length-a.length).reduce((t,k)=>t.replaceAll(k,revMap[k]), text);
+}
 
 // ------------------- COPY BUTTON -------------------
 function copyText(id, btn){
@@ -94,29 +125,26 @@ function processInput(){
   clusters.forEach(cluster=>{
     let clusterText=cluster.replace(/\s+$/gm,'');
     if(doubleDanda){
-        clusterText = clusterText.replace(/॥\s*([\d०-९]*)\s*॥/g, (_, num)=> num ? `॥ ${num} ॥` : '॥  ॥');
-        clusterText = clusterText.replace(/\|\|\s*(\d*)\s*\|\|/g, (_, num)=> num ? `|| ${num} ||` : '||  ||');
+      clusterText=clusterText.replace(/॥\s*([\d०-৯]*)\s*॥/g, (_, num)=>num?`॥ ${num} ॥`:'॥  ॥');
+      clusterText=clusterText.replace(/\|\|\s*(\d*)\s*\|\|/g, (_, num)=>num?`|| ${num} ||`:'||  ||');
     }
 
     if(document.getElementById("optDevanagari").checked){
-        if(script==='iast') output += transliterateIASTtoDevanagari(clusterText)+'\n';
-        else output += clusterText+'\n';
+      if(script==='iast') output+=transliterateIASTtoDevanagari(clusterText)+'\n';
+      else output+=clusterText+'\n';
     }
-
     if(document.getElementById("optBengali").checked){
-        if(script==='iast') output += transliterateIASTtoBengali(clusterText)+'\n';
-        else if(script==='dev') output += devanagariToBengali(clusterText)+'\n';
-        else output += clusterText+'\n';
+      if(script==='iast') output+=transliterateIASTtoBengali(clusterText)+'\n';
+      else if(script==='dev') output+=devanagariToBengali(clusterText)+'\n';
+      else output+=clusterText+'\n';
     }
-
     if(document.getElementById("optIAST").checked){
-        if(script==='dev') output += devanagariToIAST(clusterText)+'\n';
-        else output += clusterText+'\n';
+      if(script==='dev') output+=devanagariToIAST(clusterText)+'\n';
+      else output+=clusterText+'\n';
     }
-
     output+='\n';
-});
-  
+  });
+
   document.getElementById("outputBox").value=output.trim();
 }
 
