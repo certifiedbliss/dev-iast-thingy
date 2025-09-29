@@ -60,11 +60,11 @@ const devanagariToIASTMap = {
 
 const devanagariToBengaliMap = {
 'क':'ক','ख':'খ','ग':'গ','घ':'ঘ','ङ':'ঙ',
-'च':'চ','छ':'ছ','জ':'জ','ঝ':'ঝ','ञ':'ঞ',
+'च':'চ','छ':'ছ','ज':'জ','झ':'ঝ','ञ':'ঞ',
 'ट':'ট','ठ':'ঠ','ड':'ড','ढ':'ঢ','ण':'ণ',
-'त':'ত','थ':'থ','द':'দ','ध':'ধ','ন':'ন',
-'प':'প','फ':'ফ','ब':'ব','ভ':'ভ','म':'ম',
-'य':'য','र':'র','ল':'ল','व':'ব',
+'त':'ত','थ':'থ','द':'দ','ध':'ধ','न':'ন',
+'प':'প','फ':'ফ','ब':'ব','भ':'ভ','म':'ম',
+'य':'য','र':'র','ल':'ল','व':'ব',
 'श':'শ','ष':'ষ','स':'স','ह':'হ',
 'अ':'অ','आ':'আ','इ':'ই','ई':'ঈ','उ':'উ','ऊ':'ঊ',
 'ऋ':'ঋ','ॠ':'ৠ','ए':'এ','ऐ':'ঐ','ओ':'ও','औ':'ঔ',
@@ -95,9 +95,23 @@ function devanagariToIAST(text){
 }
 
 function devanagariToBengali(text){
-  // Remove all virāmas
-  const noVirama = text.replace(/्/g,'');
-  return Array.from(noVirama).map(c=>devanagariToBengaliMap[c]||c).join('');
+  let out='';
+  const chars = Array.from(text);
+  for(let i=0;i<chars.length;i++){
+    const c=chars[i];
+    const next=chars[i+1];
+    if(c==='्'){ // skip virama
+      continue;
+    }
+    let mapped = devanagariToBengaliMap[c]||c;
+    // Handle simple y/r/l/s clusters
+    if(next==='य' && /[ক-হ]/.test(mapped)) mapped += '্য';
+    else if(next==='र' && /[ক-হ]/.test(mapped)) mapped += '্র';
+    else if(next==='ल' && /[ক-হ]/.test(mapped)) mapped += '্ল';
+    else if(next==='स' && /[ক-হ]/.test(mapped)) mapped += '্স';
+    out+=mapped;
+  }
+  return out;
 }
 
 // copy function
@@ -134,7 +148,7 @@ function processInput(){
       devEl.className="devanagari";
       devEl.textContent=fullText;
       block.appendChild(devEl);
-      rawOutput+=fullText+"\n\n";
+      rawOutput+=fullText+"\n";
     }
     if(document.getElementById("optBengali").checked){
       const bengText=devanagariToBengali(fullText);
@@ -142,7 +156,7 @@ function processInput(){
       benEl.className="bengali";
       benEl.textContent=bengText;
       block.appendChild(benEl);
-      rawOutput+=bengText+"\n\n";
+      rawOutput+=bengText+"\n";
     }
     if(document.getElementById("optIAST").checked){
       const iastText=devanagariToIAST(fullText);
@@ -150,7 +164,7 @@ function processInput(){
       iastEl.className="iast";
       iastEl.textContent=iastText;
       block.appendChild(iastEl);
-      rawOutput+=iastText+"\n\n";
+      rawOutput+=iastText+"\n";
     }
     formattedDiv.appendChild(block);
   });
