@@ -45,7 +45,7 @@ body.dark .iast{color:#ccc;}
   <label><input type="checkbox" id="optDevanagari" checked> Devanagari</label>
   <label><input type="checkbox" id="optBengali"> Bengali</label>
   <label><input type="checkbox" id="optIAST" checked> IAST</label>
-  <label><input type="checkbox" id="optDoubleDandaSpace"> Add equal danda spacing (e.g. ॥ १॥ -> ॥ १ ॥)</label>
+  <label><input type="checkbox" id="optDoubleDandaSpace"> Add space inside '॥ _ ॥' and '|| _ ||'</label>
 </div>
 
 <div class="textbox-container">
@@ -76,4 +76,48 @@ const iastToBengaliMap = {'k':'ক','kh':'খ','g':'গ','gh':'ঘ','ṅ':'ঙ',
 
 // ------------------- TRANS FUNCTIONS -------------------
 function devanagariToIAST(text){ text = text.replace(/ॐ/g,'oṃ'); let out=''; const chars=Array.from(text); for(let i=0;i<chars.length;i++){ const c=chars[i]; const next=chars[i+1]; let m=devanagariToIASTMap[c]||c; if(/[क-ह]/.test(c)){ if(next==='्') out+=m; else if(/[ािीुूृॄेैोौ]/.test(next)) out+=m; else out+=m+'a'; }else if(/[ािीुूृॄेैोौ]/.test(c)) out+=m; else if(c==='्') continue; else out+=m; } return out; }
-function devanagariToBengali(text){ text=text.replace(/ॐ/g,'ওঁ'); const map=devanagariToBengaliMap; let out=''; let i=0; while(i<text.length){ let c=text[i]; let next=text[i+1]; let next2=text[i+2]; let mapped=map[c]||c; if(c==='्'){ i++; continue; } if(next==='্'){ if(next2==='য') mapped+='্য',i+=2; else if(next2==='র') mapped+='্র',i+=2; else if(next2==='ল') mapped+='্ল',i+=2; else if(next2==='স') mapped+='্স',i+=2;
+function devanagariToBengali(text){ text=text.replace(/ॐ/g,'ওঁ'); const map=devanagariToBengaliMap; let out=''; let i=0; while(i<text.length){ let c=text[i]; let next=text[i+1]; let next2=text[i+2]; let mapped=map[c]||c; if(c==='्'){ i++; continue; } if(next==='্'){ if(next2==='য') mapped+='্য',i+=2; else if(next2==='র') mapped+='্র',i+=2; else if(next2==='ল') mapped+='্ল',i+=2; else if(next2==='স') mapped+='্স',i+=2; else if(next2==='ষ') mapped+='্ষ',i+=2; else if(next2==='ক') mapped+='্ক',i+=2; else mapped+='',i++; } out+=mapped; i++; } return out; }
+function transliterateIASTtoDevanagari(text){ return text.replace(/oṃ/g,'ॐ'); /* simple version, expand for full IAST */ }
+function transliterateIASTtoBengali(text){ return text.replace(/oṃ/g,'ওঁ'); /* simple version, expand for full IAST */ }
+
+// ------------------- COPY FUNCTION -------------------
+function copyText(id, btn){
+  const box=document.getElementById(id);
+  navigator.clipboard.writeText(box.value).then(()=>{
+    const originalText = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(()=>btn.textContent = originalText,1500);
+  }).catch(err=>console.error('Copy failed:', err));
+}
+
+// ------------------- PROCESS INPUT -------------------
+document.getElementById("inputBox").addEventListener("input",processInput);
+
+function processInput(){
+  const inputText=document.getElementById("inputBox").value.trim();
+  if(!inputText){document.getElementById("outputBox").value='';return;}
+  const doubleDanda=document.getElementById("optDoubleDandaSpace").checked;
+  let clusters=inputText.split(/\n{1,}/).map(l=>l.trim()).filter(l=>l);
+
+  let output='';
+  const script=detectScript(inputText);
+
+  clusters.forEach(c=>{
+    let cluster=c;
+    if(doubleDanda) cluster=cluster.replace(/॥\s*॥/g,'॥  ॥').replace(/\|\|\s*\|\|/g,'||  ||');
+    if(script==='iast'){
+      if(document.getElementById("optDevanagari").checked) output+=transliterateIASTtoDevanagari(cluster)+'\n';
+      if(document.getElementById("optBengali").checked) output+=transliterateIASTtoBengali(cluster)+'\n';
+      if(document.getElementById("optIAST").checked) output+=cluster+'\n';
+    }else{
+      if(document.getElementById("optDevanagari").checked) output+=cluster+'\n';
+      if(document.getElementById("optBengali").checked) output+=devanagariToBengali(cluster)+'\n';
+      if(document.getElementById("optIAST").checked) output+=devanagariToIAST(cluster)+'\n';
+    }
+  });
+  document.getElementById("outputBox").value=output.trim();
+}
+</script>
+
+</body>
+</html>
