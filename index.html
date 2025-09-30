@@ -8,21 +8,13 @@ body { font-family: 'Noto Serif', serif; background: #f9f9f9; color:#333; paddin
 body.dark { background:#121212; color:#eee; }
 h1{text-align:center;margin-bottom:1em;}
 .textbox-container{position:relative;margin-bottom:1em;}
-textarea{width:100%;height:140px;font-size:1.1em;padding:10px;box-sizing:border-box;white-space:pre-wrap;font-family:'Noto Serif Devanagari','Noto Serif Bengali',serif;background:white;color:#333;border:1px solid #ccc;border-radius:4px;transition: background 0.3s, color 0.3s;}
+textarea{width:100%;height:140px;font-size:1.1em;padding:10px;box-sizing:border-box;white-space:pre-wrap;font-family:'Noto Serif Devanagari','Noto Serif',serif;background:white;color:#333;border:1px solid #ccc;border-radius:4px;transition: background 0.3s, color 0.3s;}
 body.dark textarea{background:#1e1e1e;color:#eee;border:1px solid #444;}
 .copy-btn{position:absolute;top:10px;right:10px;padding:5px 10px;background:#4caf50;color:white;border:none;cursor:pointer;font-size:0.9em;border-radius:4px;transition: background 0.3s;}
 .copy-btn:active{background:#45a049;}
 .options-bar{display:flex;flex-wrap:wrap;justify-content:center;gap:1.5em;margin-bottom:1em;background:#eee;padding:10px;border-radius:6px;transition: background 0.3s,color 0.3s;}
 body.dark .options-bar{background:#222;color:#eee;}
 .options-bar label{display:flex;align-items:center;gap:5px;cursor:pointer;font-size:0.95em;}
-.shloka{margin-top:1.5em;margin-bottom:1.5em;padding:10px;background:white;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,0.1);transition: background 0.3s,color 0.3s;}
-body.dark .shloka{background:#1e1e1e;color:#eee;}
-.devanagari{font-size:1.3em;font-weight:bold;color:#222;margin-bottom:2px;font-family:'Noto Serif Devanagari',serif;}
-body.dark .devanagari{color:#fff;}
-.bengali{font-size:1.3em;font-weight:bold;color:#222;margin-bottom:2px;font-family:'Noto Serif Bengali',serif;}
-body.dark .bengali{color:#fff;}
-.iast{font-size:1.1em;font-style:italic;color:#555;}
-body.dark .iast{color:#ccc;}
 .dark-toggle{display:flex;justify-content:center;margin-bottom:1em;}
 .dark-toggle button{padding:5px 10px;background:#333;color:#eee;border:none;border-radius:4px;cursor:pointer;transition: background 0.3s,color 0.3s;}
 .dark-toggle button:active{background:#444;}
@@ -43,7 +35,6 @@ body.dark .iast{color:#ccc;}
 
 <div class="options-bar">
   <label><input type="checkbox" id="optDevanagari" checked> Devanagari</label>
-  <label><input type="checkbox" id="optBengali"> Bengali</label>
   <label><input type="checkbox" id="optIAST" checked> IAST</label>
   <label><input type="checkbox" id="optDoubleDandaSpace"> Add danda spacing</label>
 </div>
@@ -73,25 +64,8 @@ const devanagariToIASTMap = {
 'ा':'ā','ि':'i','ी':'ī','ु':'u','ू':'ū','ृ':'ṛ','ॄ':'ṝ',
 'े':'e','ै':'ai','ो':'o','ौ':'au',
 'ं':'ṃ','ः':'ḥ','ँ':'̃',
-'्':'','ऽ':"'",'।':'|','॥':'||',
+'्':'','ऽ':"'",'।':'|','॥':'||','ॐ':'oṃ',
 '०':'0','१':'1','२':'2','३':'3','४':'4','५':'5','६':'6','७':'7','८':'8','९':'9'
-};
-
-const devanagariToBengaliMap = {
-'क':'ক','ख':'খ','ग':'গ','घ':'ঘ','ङ':'ঙ',
-'च':'চ','छ':'ছ','ज':'জ','झ':'ঝ','ञ':'ঞ',
-'ट':'ট','ठ':'ঠ','ड':'ড','ढ':'ঢ','ण':'ণ',
-'त':'ত','थ':'থ','द':'দ','ध':'ধ','न':'ন',
-'प':'প','फ':'ফ','ब':'ব','भ':'ভ','ম':'ম',
-'य':'য','र':'র','ল':'ল','व':'ব',
-'श':'শ','ष':'ষ','स':'স','ह':'হ',
-'अ':'অ','आ':'আ','इ':'ই','ई':'ঈ','উ':'উ','ऊ':'ঊ',
-'ऋ':'ঋ','ॠ':'ৠ','ए':'এ','ऐ':'ঐ','ओ':'ও','औ':'ঔ',
-'ा':'া','ि':'ি','ी':'ী','ु':'ু','ू':'ূ','ृ':'ৃ','ॄ':'ৄ',
-'े':'ে','ै':'ৈ','ो':'ো','ौ':'ৌ',
-'ं':'ং','ः':'ঃ','ँ':'ঁ',
-'्':'','ऽ':"'",'।':'।','॥':'॥',
-'०':'০','१':'১','२':'২','३':'৩','४':'৪','५':'৫','৬':'৬','৭':'৭','৮':'৮','৯':'৯'
 };
 
 // ------------------- TRANS FUNCTIONS -------------------
@@ -102,6 +76,7 @@ function devanagariToIAST(text){
     const c=chars[i];
     const next=chars[i+1];
     let m = devanagariToIASTMap[c]||c;
+    if(c==='ॐ'){ out+='oṃ'; continue; }
     if(/[क-ह]/.test(c)){
       if(next==='्') out+=m;
       else if(/[ािीुूृॄेैोौ]/.test(next)) out+=m;
@@ -109,37 +84,6 @@ function devanagariToIAST(text){
     }else if(/[ािीुूृॄेैोौ]/.test(c)) out+=m;
     else if(c==='्') continue;
     else out+=m;
-  }
-  return out;
-}
-
-function devanagariToBengali(text){
-  const map = devanagariToBengaliMap;
-  let out='';
-  let i=0;
-  while(i<text.length){
-    let c=text[i];
-    let next=text[i+1];
-    let next2=text[i+2];
-    let mapped = map[c] || c;
-    if(c==='्'){ i++; continue; }
-
-    if(next==='्'){
-      if(next2==='य') mapped+='্য', i+=2;
-      else if(next2==='র') mapped+='্র', i+=2;
-      else if(next2==='ল') mapped+='্ল', i+=2;
-      else if(next2==='স') mapped+='্স', i+=2;
-      else if(next2==='ष') mapped+='্ষ', i+=2;
-      else if(next2==='ক') mapped+='্ক', i+=2;
-      else if(next2==='त्र') mapped+='্ত্র', i+=2;
-      else if(next2==='ज्ञ') mapped+='জ্ঞ', i+=2;
-      else if(next2==='क्ष') mapped+='ক্ষ', i+=2;
-      else if(next2==='श्र') mapped+='শ্র', i+=2;
-      else if(next2==='ह্ন') mapped+='হ্ন', i+=2;
-      else mapped+='', i++;
-    }
-    out+=mapped;
-    i++;
   }
   return out;
 }
@@ -155,6 +99,7 @@ function copyText(id, btn){
     console.error('Copy failed:', err);
   });
 }
+
 // ------------------- PROCESS INPUT -------------------
 document.getElementById("inputBox").addEventListener("input",processInput);
 document.querySelectorAll(".options-bar input").forEach(opt=>opt.addEventListener("change",processInput));
@@ -174,7 +119,6 @@ function processInput(){
     let clusterOutput="";
 
     if(document.getElementById("optDevanagari").checked) clusterOutput+=fullText+"\n";
-    if(document.getElementById("optBengali").checked) clusterOutput+=devanagariToBengali(fullText)+"\n";
     if(document.getElementById("optIAST").checked) clusterOutput+=devanagariToIAST(fullText)+"\n";
 
     if(document.getElementById("optDoubleDandaSpace").checked){
